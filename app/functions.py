@@ -1,17 +1,23 @@
-
-from langchain.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain.vectorstores import Chroma
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.pydantic_v1 import BaseModel, Field
-
 import os
 import tempfile
 import uuid
 import pandas as pd
 import re
+
+from langchain.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.pydantic_v1 import BaseModel, Field
+
+# Error handling https://stackoverflow.com/questions/76958817/streamlit-your-system-has-an-unsupported-version-of-sqlite3-chroma-requires-sq
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+# Import chromadb after updating sqlite3 https://stackoverflow.com/questions/76921252/attributeerror-module-chromadb-has-no-attribute-config
+from langchain.vectorstores import Chroma
 
 def clean_filename(filename):
     """
@@ -146,7 +152,7 @@ def create_vectorstore_from_texts(documents, api_key, file_name):
 
     :return: A Chroma vector store object
     """
-    docs = split_document(documents, chunk_size=1000, chunk_overlap=200)
+    docs = split_document(documents, chunk_size=1500, chunk_overlap=200)
     
     # Step 3 define embedding function
     embedding_function = get_embedding_function(api_key)
